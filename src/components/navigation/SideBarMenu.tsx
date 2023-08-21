@@ -15,40 +15,66 @@ import {appPermissions} from "config/app-permissions.config"
 import {Link} from "./Link"
 import schraTheme from "theme/theme"
 import {useRouter} from "next/router"
+import {useAuth} from "hooks/useAuth"
 
-interface DesktopSideBarMenuProps {
+interface SidebarMenuProps {
   isInDrawer?: boolean
   onLinkClick?: () => void
 }
-const DesktopSideBarMenu = ({isInDrawer, onLinkClick}: DesktopSideBarMenuProps) => {
-  let router = useRouter()
-
-  // TODO: avoid component-specific one-off styles like this. Try to refactor these into a system of semantic-tokens.
+const SidebarMenu = ({isInDrawer, onLinkClick}: SidebarMenuProps) => {
+  const router = useRouter()
+  const {isSupplier} = useAuth()
   const btnActiveColor = useColorModeValue("inherit", "whiteAlpha.800")
   const btnActiveBgColor = useColorModeValue("white", "whiteAlpha.200")
 
   const data = [
-    {label: "dashboard", icon: TbLayout, permisshies: appPermissions.ProductManager},
+    {label: "Dashboard", path: "/dashboard", icon: TbLayout, permisshies: appPermissions.DashboardViewer},
     {
-      label: "products",
+      label: "Products",
+      path: "/products",
       icon: TbShoppingCartPlus,
       permisshies: [appPermissions.ProductViewer, appPermissions.ProductManager]
     },
     {
-      label: "promotions",
+      label: "Promotions",
+      path: "/promotions",
       icon: TbShoppingCartDiscount,
       permisshies: [appPermissions.PromotionViewer, appPermissions.PromotionManager]
     },
-    {label: "orders", icon: TbReceipt2, permisshies: [appPermissions.OrderViewer, appPermissions.OrderManager]},
-    {label: "returns", icon: TbTruckReturn, permisshies: [appPermissions.OrderViewer, appPermissions.OrderManager]},
-    {label: "buyers", icon: TbUserCheck, permisshies: [appPermissions.BuyerViewer, appPermissions.BuyerManager]},
     {
-      label: "suppliers",
-      icon: TbBuildingWarehouse,
-      permisshies: [appPermissions.SupplierViewer, appPermissions.SupplierManager]
+      label: "Orders",
+      path: "/orders",
+      icon: TbReceipt2,
+      permisshies: [appPermissions.OrderViewer, appPermissions.OrderManager]
     },
     {
+      label: "Returns",
+      path: "/returns",
+      icon: TbTruckReturn,
+      permisshies: [appPermissions.OrderViewer, appPermissions.OrderManager]
+    },
+    {
+      label: "Buyers",
+      path: "/buyers",
+      icon: TbUserCheck,
+      permisshies: [appPermissions.BuyerViewer, appPermissions.BuyerManager]
+    },
+    isSupplier
+      ? {
+          label: "My Supplier",
+          path: "/mysupplier",
+          icon: TbBuildingWarehouse,
+          permisshies: [appPermissions.SupplierViewer, appPermissions.SupplierManager]
+        }
+      : {
+          label: "Suppliers",
+          path: "/suppliers",
+          icon: TbBuildingWarehouse,
+          permisshies: [appPermissions.SupplierViewer, appPermissions.SupplierManager]
+        },
+    {
       label: "settings",
+      path: "/settings",
       icon: TbSettings2,
       permisshies: [
         // only one of these is needed to access the settings page
@@ -64,11 +90,10 @@ const DesktopSideBarMenu = ({isInDrawer, onLinkClick}: DesktopSideBarMenuProps) 
 
   const links = data.map((item) => (
     <ProtectedContent hasAccess={item.permisshies} key={item.label}>
-      {/* TODO: This is excessive. Consider refactoring these styles into a button variant. */}
       <Button
         as={Link}
         onClick={onLinkClick}
-        href={`/${item.label}`}
+        href={item.path}
         variant="ghost"
         leftIcon={<Icon as={item.icon} strokeWidth="1.25" fontSize="1.5em" />}
         isActive={"/" + item.label === router?.pathname}
@@ -123,4 +148,4 @@ const DesktopSideBarMenu = ({isInDrawer, onLinkClick}: DesktopSideBarMenuProps) 
   )
 }
 
-export default DesktopSideBarMenu
+export default SidebarMenu
