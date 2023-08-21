@@ -22,7 +22,7 @@ const UserListItem = () => {
   return (
     <>
       {user?.ID ? (
-        <UserForm user={user} userService={Users} />
+        <UserForm user={user} userType="buyer" />
       ) : (
         <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
           <Skeleton w="100%" h="544px" borderRadius="md" />
@@ -34,7 +34,7 @@ const UserListItem = () => {
 
 const ProtectedBuyerListItem = () => {
   return (
-    <ProtectedContent hasAccess={appPermissions.BuyerManager}>
+    <ProtectedContent hasAccess={[appPermissions.BuyerUserViewer, appPermissions.BuyerUserManager]}>
       <UserListItem />
     </ProtectedContent>
   )

@@ -15,59 +15,65 @@ const SettingsPage = () => {
     <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
       <NextSeo title="Settings" />
       <Grid gridTemplateColumns="repeat(auto-fit, 225px)" gap={4}>
-        <Link href="/settings/adminusers/" _hover={{textDecoration: "none"}}>
-          <Card align="center" variant="levitating">
-            <CardBody
-              display="flex"
-              flexFlow="column nowrap"
-              gap={4}
-              alignItems="center"
-              h={"225px"}
-              justifyContent={"center"}
-            >
-              <Icon as={HiUsers} fontSize="5xl" title="Settings" color="darkGray"></Icon>
-              <Text width="100%" w="full">
-                Admin Users
-              </Text>
-            </CardBody>
-          </Card>
-        </Link>
+        <ProtectedContent hasAccess={[appPermissions.AdminUserViewer, appPermissions.AdminUserManager]}>
+          <Link href="/settings/adminusers/" _hover={{textDecoration: "none"}}>
+            <Card align="center" variant="levitating">
+              <CardBody
+                display="flex"
+                flexFlow="column nowrap"
+                gap={4}
+                alignItems="center"
+                h={"225px"}
+                justifyContent={"center"}
+              >
+                <Icon as={HiUsers} fontSize="5xl" title="Settings" color="darkGray"></Icon>
+                <Text width="100%" w="full">
+                  Admin Users
+                </Text>
+              </CardBody>
+            </Card>
+          </Link>
+        </ProtectedContent>
 
-        <Link href="/settings/adminaddresses/" _hover={{textDecoration: "none"}}>
-          <Card align="center" variant="levitating">
-            <CardBody
-              display="flex"
-              flexFlow="column nowrap"
-              gap={4}
-              alignItems="center"
-              h={"225px"}
-              justifyContent={"center"}
-            >
-              <Icon as={FaAddressBook} fontSize="5xl" title="Settings" color="darkGray"></Icon>
-              <Text width="100%" w="full">
-                Admin Addresses
-              </Text>
-            </CardBody>
-          </Card>
-        </Link>
+        <ProtectedContent hasAccess={[appPermissions.AdminAddressViewer, appPermissions.AdminAddressManager]}>
+          <Link href="/settings/adminaddresses/" _hover={{textDecoration: "none"}}>
+            <Card align="center" variant="levitating">
+              <CardBody
+                display="flex"
+                flexFlow="column nowrap"
+                gap={4}
+                alignItems="center"
+                h={"225px"}
+                justifyContent={"center"}
+              >
+                <Icon as={FaAddressBook} fontSize="5xl" title="Settings" color="darkGray"></Icon>
+                <Text width="100%" w="full">
+                  Admin Addresses
+                </Text>
+              </CardBody>
+            </Card>
+          </Link>
+        </ProtectedContent>
 
-        <Link href="/settings/productfacets/" _hover={{textDecoration: "none"}}>
-          <Card align="center" variant="levitating">
-            <CardBody
-              display="flex"
-              flexFlow="column nowrap"
-              gap={4}
-              alignItems="center"
-              h={"225px"}
-              justifyContent={"center"}
-            >
-              <Icon as={HiOutlineFilter} fontSize="5xl" title="Settings" color="darkGray"></Icon>
-              <Text width="100%" w="full">
-                Product Facets
-              </Text>
-            </CardBody>
-          </Card>
-        </Link>
+        <ProtectedContent hasAccess={[appPermissions.ProductFacetViewer, appPermissions.ProductFacetManager]}>
+          <Link href="/settings/productfacets/" _hover={{textDecoration: "none"}}>
+            <Card align="center" variant="levitating">
+              <CardBody
+                display="flex"
+                flexFlow="column nowrap"
+                gap={4}
+                alignItems="center"
+                h={"225px"}
+                justifyContent={"center"}
+              >
+                <Icon as={HiOutlineFilter} fontSize="5xl" title="Settings" color="darkGray"></Icon>
+                <Text width="100%" w="full">
+                  Product Facets
+                </Text>
+              </CardBody>
+            </Card>
+          </Link>
+        </ProtectedContent>
       </Grid>
     </Container>
   )
@@ -75,7 +81,17 @@ const SettingsPage = () => {
 
 const ProtectedSettingsPage = () => {
   return (
-    <ProtectedContent hasAccess={appPermissions.SettingsManager}>
+    <ProtectedContent
+      hasAccess={[
+        // only one of these is needed to access the settings page
+        appPermissions.AdminUserViewer,
+        appPermissions.AdminUserManager,
+        appPermissions.AdminAddressViewer,
+        appPermissions.AdminAddressManager,
+        appPermissions.ProductFacetViewer,
+        appPermissions.ProductFacetManager
+      ]}
+    >
       <SettingsPage />
     </ProtectedContent>
   )

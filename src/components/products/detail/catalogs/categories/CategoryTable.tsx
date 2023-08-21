@@ -8,6 +8,8 @@ import {ICategory} from "types/ordercloud/ICategoryXp"
 import {Dictionary, groupBy} from "lodash"
 import {CategoryActionMenu} from "./CategoryActionMenu"
 import {ProductDetailFormFields} from "../../form-meta"
+import ProtectedContent from "@/components/auth/ProtectedContent"
+import {appPermissions} from "config/app-permissions.config"
 
 interface CategoryTableProps {
   control: Control<ProductDetailFormFields>
@@ -79,7 +81,9 @@ export function CategoryTable({control, fieldArray}: CategoryTableProps) {
                         <Td role="cell">{category.ID}</Td>
                         <Td role="cell">{category.Description}</Td>
                         <Td role="cell">
-                          <CategoryActionMenu onDeleteAssignment={() => remove(index)} />
+                          <ProtectedContent hasAccess={appPermissions.ProductManager}>
+                            <CategoryActionMenu onDeleteAssignment={() => remove(index)} />
+                          </ProtectedContent>
                         </Td>
                       </Tr>
                     )

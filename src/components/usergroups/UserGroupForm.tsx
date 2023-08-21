@@ -11,16 +11,26 @@ import {object, string} from "yup"
 import {useEffect, useState} from "react"
 import {useSuccessToast} from "hooks/useToast"
 import {getObjectDiff} from "utils"
+import ProtectedContent from "../auth/ProtectedContent"
+import {appPermissions} from "config/app-permissions.config"
+import useHasAccess from "hooks/useHasAccess"
 
 interface UserGroupFormFormProps {
   userGroup?: UserGroup
-  userGroupService: typeof UserGroups | typeof AdminUserGroups | typeof SupplierUserGroups
+  userGroupType: "buyer" | "supplier" | "admin"
 }
-export function UserGroupFormForm({userGroup, userGroupService}: UserGroupFormFormProps) {
+export function UserGroupFormForm({userGroup, userGroupType}: UserGroupFormFormProps) {
   const [currentUserGroup, setCurrentUserGroup] = useState(userGroup)
   const [isCreating, setIsCreating] = useState(!userGroup?.ID)
   const router = useRouter()
   const successToast = useSuccessToast()
+  const isUserGroupManager = useHasAccess(
+    userGroupType === "buyer"
+      ? appPermissions.BuyerUserGroupManager
+      : userGroupType === "supplier"
+      ? appPermissions.SupplierUserGroupManager
+      : false // currently we don't have an admin usergroup manager role, so default to disallow access
+  )
 
   useEffect(() => {
     setIsCreating(!currentUserGroup?.ID)
@@ -44,8 +54,28 @@ export function UserGroupFormForm({userGroup, userGroupService}: UserGroupFormFo
   if (router.query.supplierid !== undefined) parentId = router.query.supplierid.toString()
   const userGroupId = router.query.usergroupid.toString() as any
 
+  const createOrderCloudUserGroup = async (userGroup: UserGroup) => {
+    if (userGroupType === "buyer") {
+      return await UserGroups.Create(parentId, userGroup)
+    } else if (userGroupType === "supplier") {
+      return await SupplierUserGroups.Create(parentId, userGroup)
+    } else {
+      return await AdminUserGroups.Create(userGroup)
+    }
+  }
+
+  const updateOrderCloudUserGroup = async (userGroup: Partial<UserGroup>) => {
+    if (userGroupType === "buyer") {
+      return await UserGroups.Patch(parentId, userGroupId, userGroup)
+    } else if (userGroupType === "supplier") {
+      return await SupplierUserGroups.Patch(parentId, userGroupId, userGroup)
+    } else {
+      return await AdminUserGroups.Patch(userGroupId, userGroup)
+    }
+  }
+
   async function createUserGroup(fields: UserGroup) {
-    const createdUserGroup = await userGroupService.Create(parentId, fields)
+    const createdUserGroup = await createOrderCloudUserGroup(fields)
     successToast({
       description: "User Group created successfully."
     })
@@ -55,7 +85,7 @@ export function UserGroupFormForm({userGroup, userGroupService}: UserGroupFormFo
 
   async function updateUserGroup(fields: UserGroup) {
     const diff = getObjectDiff(currentUserGroup, fields)
-    const updatedUserGroup = await userGroupService.Patch(parentId, userGroupId, diff)
+    const updatedUserGroup = await updateOrderCloudUserGroup(diff)
     successToast({
       description: "User Group updated successfully."
     })
@@ -78,22 +108,31 @@ export function UserGroupFormForm({userGroup, userGroupService}: UserGroupFormFo
           <Button onClick={() => router.back()} variant="outline" leftIcon={<TbChevronLeft />}>
             Back
           </Button>
-          <ButtonGroup>
-            <ResetButton control={control} reset={reset} variant="outline">
-              Discard Changes
-            </ResetButton>
-            <SubmitButton control={control} variant="solid" colorScheme="primary">
-              Save
-            </SubmitButton>
-          </ButtonGroup>
+          <ProtectedContent hasAccess={isUserGroupManager}>
+            <ButtonGroup>
+              <ResetButton control={control} reset={reset} variant="outline">
+                Discard Changes
+              </ResetButton>
+              <SubmitButton control={control} variant="solid" colorScheme="primary">
+                Save
+              </SubmitButton>
+            </ButtonGroup>
+          </ProtectedContent>
         </CardHeader>
         <CardBody display="flex" flexDirection={"column"} gap={4} maxW={{xl: "container.md"}}>
-          <InputControl name="Name" label="User Group Name" control={control} validationSchema={validationSchema} />
+          <InputControl
+            name="Name"
+            label="User Group Name"
+            control={control}
+            validationSchema={validationSchema}
+            isDisabled={!isUserGroupManager}
+          />
           <TextareaControl
             name="Description"
             label="Description"
             control={control}
             validationSchema={validationSchema}
+            isDisabled={!isUserGroupManager}
           />
         </CardBody>
       </Card>

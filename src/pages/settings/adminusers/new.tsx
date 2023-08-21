@@ -4,7 +4,7 @@ import {appPermissions} from "config/app-permissions.config"
 
 function ProtectedNewAdminUserPage() {
   return (
-    <ProtectedContent hasAccess={appPermissions.SettingsManager}>
+    <ProtectedContent hasAccess={appPermissions.AdminUserManager}>
       <AdminUserForm />
     </ProtectedContent>
   )

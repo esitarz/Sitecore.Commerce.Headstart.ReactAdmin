@@ -13,12 +13,16 @@ import {useEffect, useState} from "react"
 import {useErrorToast, useSuccessToast} from "hooks/useToast"
 import {array, object, string} from "yup"
 import {getObjectDiff} from "utils"
+import useHasAccess from "hooks/useHasAccess"
+import {appPermissions} from "config/app-permissions.config"
+import ProtectedContent from "../auth/ProtectedContent"
 
 interface ProductFacetFormProps {
   productFacet?: IProductFacet
 }
 
 export function ProductFacetForm({productFacet}: ProductFacetFormProps) {
+  const isProductFacetManager = useHasAccess(appPermissions.ProductFacetManager)
   const [currentProductFacet, setCurrentProductFacet] = useState(productFacet)
   const [isCreating, setIsCreating] = useState(!productFacet?.ID)
   const router = useRouter()
@@ -87,22 +91,28 @@ export function ProductFacetForm({productFacet}: ProductFacetFormProps) {
   return (
     <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
       <Card as="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-        <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
-          <Button onClick={() => router.push("/settings/productfacets")} variant="outline" leftIcon={<TbChevronLeft />}>
-            Back
-          </Button>
-          <ButtonGroup>
-            <Button onClick={() => deleteProductFacet()} variant="outline" colorScheme={"danger"} hidden={isCreating}>
-              Delete
+        <ProtectedContent hasAccess={appPermissions.ProductFacetManager}>
+          <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
+            <Button
+              onClick={() => router.push("/settings/productfacets")}
+              variant="outline"
+              leftIcon={<TbChevronLeft />}
+            >
+              Back
             </Button>
-            <ResetButton control={control} reset={reset} variant="outline">
-              Discard Changes
-            </ResetButton>
-            <SubmitButton control={control} variant="solid" colorScheme="primary">
-              Save
-            </SubmitButton>
-          </ButtonGroup>
-        </CardHeader>
+            <ButtonGroup>
+              <Button onClick={() => deleteProductFacet()} variant="outline" colorScheme={"danger"} hidden={isCreating}>
+                Delete
+              </Button>
+              <ResetButton control={control} reset={reset} variant="outline">
+                Discard Changes
+              </ResetButton>
+              <SubmitButton control={control} variant="solid" colorScheme="primary">
+                Save
+              </SubmitButton>
+            </ButtonGroup>
+          </CardHeader>
+        </ProtectedContent>
         <CardBody
           display="flex"
           flexDirection={"column"}
@@ -117,6 +127,7 @@ export function ProductFacetForm({productFacet}: ProductFacetFormProps) {
             helperText="A name for this facet group"
             control={control}
             validationSchema={validationSchema}
+            isDisabled={!isProductFacetManager}
           />
           <ChipInputControl
             maxW="sm"
@@ -126,6 +137,7 @@ export function ProductFacetForm({productFacet}: ProductFacetFormProps) {
             inputProps={{placeholder: "Add a facet option..."}}
             control={control}
             validationSchema={validationSchema}
+            isDisabled={!isProductFacetManager}
           />
         </CardBody>
       </Card>

@@ -25,7 +25,7 @@ const UserGroupListItem = () => {
   return (
     <>
       {userGroup?.ID ? (
-        <UserGroupFormForm userGroup={userGroup} userGroupService={SupplierUserGroups} />
+        <UserGroupFormForm userGroup={userGroup} userGroupType="supplier" />
       ) : (
         <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
           <Skeleton w="100%" h="544px" borderRadius="md" />
@@ -34,12 +34,12 @@ const UserGroupListItem = () => {
     </>
   )
 }
-const ProtectedSupplierListItem = () => {
+const ProtectedSupplierUserGroupListItem = () => {
   return (
-    <ProtectedContent hasAccess={appPermissions.SupplierManager}>
+    <ProtectedContent hasAccess={[appPermissions.SupplierUserGroupViewer, appPermissions.SupplierUserGroupManager]}>
       <UserGroupListItem />
     </ProtectedContent>
   )
 }
 
-export default ProtectedSupplierListItem
+export default ProtectedSupplierUserGroupListItem

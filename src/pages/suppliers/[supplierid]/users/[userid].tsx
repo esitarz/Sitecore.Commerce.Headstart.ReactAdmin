@@ -25,7 +25,7 @@ const UserListItem = () => {
   return (
     <>
       {user?.ID ? (
-        <UserForm user={user} userService={SupplierUsers} />
+        <UserForm user={user} userType="supplier" />
       ) : (
         <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
           <Skeleton w="100%" h="544px" borderRadius="md" />
@@ -37,7 +37,7 @@ const UserListItem = () => {
 
 const ProtectedSupplierListItem = () => {
   return (
-    <ProtectedContent hasAccess={appPermissions.SupplierManager}>
+    <ProtectedContent hasAccess={[appPermissions.SupplierUserViewer, appPermissions.SupplierUserManager]}>
       <UserListItem />
     </ProtectedContent>
   )

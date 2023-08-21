@@ -29,13 +29,37 @@ const DesktopSideBarMenu = ({isInDrawer, onLinkClick}: DesktopSideBarMenuProps) 
 
   const data = [
     {label: "dashboard", icon: TbLayout, permisshies: appPermissions.ProductManager},
-    {label: "products", icon: TbShoppingCartPlus, permisshies: appPermissions.ProductManager},
-    {label: "promotions", icon: TbShoppingCartDiscount, permisshies: appPermissions.OrderManager},
-    {label: "orders", icon: TbReceipt2, permisshies: appPermissions.OrderManager},
-    {label: "returns", icon: TbTruckReturn, permisshies: appPermissions.OrderManager},
-    {label: "buyers", icon: TbUserCheck, permisshies: appPermissions.BuyerManager},
-    {label: "suppliers", icon: TbBuildingWarehouse, permisshies: appPermissions.SupplierManager},
-    {label: "settings", icon: TbSettings2, permisshies: appPermissions.SettingsManager}
+    {
+      label: "products",
+      icon: TbShoppingCartPlus,
+      permisshies: [appPermissions.ProductViewer, appPermissions.ProductManager]
+    },
+    {
+      label: "promotions",
+      icon: TbShoppingCartDiscount,
+      permisshies: [appPermissions.PromotionViewer, appPermissions.PromotionManager]
+    },
+    {label: "orders", icon: TbReceipt2, permisshies: [appPermissions.OrderViewer, appPermissions.OrderManager]},
+    {label: "returns", icon: TbTruckReturn, permisshies: [appPermissions.OrderViewer, appPermissions.OrderManager]},
+    {label: "buyers", icon: TbUserCheck, permisshies: [appPermissions.BuyerViewer, appPermissions.BuyerManager]},
+    {
+      label: "suppliers",
+      icon: TbBuildingWarehouse,
+      permisshies: [appPermissions.SupplierViewer, appPermissions.SupplierManager]
+    },
+    {
+      label: "settings",
+      icon: TbSettings2,
+      permisshies: [
+        // only one of these is needed to access the settings page
+        appPermissions.AdminUserViewer,
+        appPermissions.AdminUserManager,
+        appPermissions.AdminAddressViewer,
+        appPermissions.AdminAddressManager,
+        appPermissions.ProductFacetViewer,
+        appPermissions.ProductFacetManager
+      ]
+    }
   ]
 
   const links = data.map((item) => (

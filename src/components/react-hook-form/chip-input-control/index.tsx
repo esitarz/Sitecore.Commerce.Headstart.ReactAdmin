@@ -48,7 +48,7 @@ export const ChipInputControl: FC<ChipInputControlProps> = (props: ChipInputCont
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
             id={name}
-            isDisabled={isSubmitting}
+            isDisabled={isSubmitting || props.isDisabled}
             name={field.name}
             ref={field.ref}
             onKeyDown={handleKeyDown}
@@ -71,6 +71,7 @@ export const ChipInputControl: FC<ChipInputControlProps> = (props: ChipInputCont
             borderRadius={"full"}
             onClick={() => handleRemove(index)}
             style={{margin: 0}}
+            isDisabled={props.isDisabled}
           >
             {value}
           </Button>

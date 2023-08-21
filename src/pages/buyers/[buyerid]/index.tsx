@@ -30,7 +30,7 @@ const BuyerListItem = () => {
 
 const ProtectedBuyerListItem = () => {
   return (
-    <ProtectedContent hasAccess={appPermissions.BuyerManager}>
+    <ProtectedContent hasAccess={[appPermissions.BuyerViewer, appPermissions.BuyerManager]}>
       <BuyerListItem />
     </ProtectedContent>
   )

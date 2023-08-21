@@ -37,7 +37,7 @@ const AdminUserListItem = () => {
 
 const ProtectedAdminUserListItem = () => {
   return (
-    <ProtectedContent hasAccess={appPermissions.SettingsManager}>
+    <ProtectedContent hasAccess={[appPermissions.AdminUserViewer, appPermissions.AdminUserManager]}>
       <AdminUserListItem />
     </ProtectedContent>
   )

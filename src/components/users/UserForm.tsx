@@ -5,7 +5,6 @@ import {
   CardBody,
   CardHeader,
   Container,
-  Flex,
   Heading,
   List,
   ListIcon,
@@ -24,16 +23,26 @@ import SubmitButton from "../react-hook-form/submit-button"
 import {useSuccessToast} from "hooks/useToast"
 import {boolean, object, string} from "yup"
 import {getObjectDiff} from "utils"
+import ProtectedContent from "../auth/ProtectedContent"
+import {appPermissions} from "config/app-permissions.config"
+import useHasAccess from "hooks/useHasAccess"
 
 interface UserFormProps {
   user?: User
-  userService: typeof Users | typeof AdminUsers | typeof SupplierUsers
+  userType: "buyer" | "supplier" | "admin"
 }
-export function UserForm({user, userService}: UserFormProps) {
+export function UserForm({user, userType}: UserFormProps) {
   const [currentUser, setCurrentUser] = useState(user)
   const [isCreating, setIsCreating] = useState(!user?.ID)
   const router = useRouter()
   const successToast = useSuccessToast()
+  const isUserManager = useHasAccess(
+    userType === "admin"
+      ? appPermissions.AdminUserManager
+      : userType === "supplier"
+      ? appPermissions.SupplierUserManager
+      : appPermissions.BuyerUserManager
+  )
 
   useEffect(() => {
     setIsCreating(!currentUser?.ID)
@@ -61,21 +70,43 @@ export function UserForm({user, userService}: UserFormProps) {
   if (router.query.buyerid !== undefined) parentId = router.query.buyerid
   if (router.query.supplierid !== undefined) parentId = router.query.supplierid
 
+  const createOrderCloudUser = async (fields: User) => {
+    if (userType === "buyer") {
+      return await AdminUsers.Create(fields)
+    } else if (userType === "supplier") {
+      return await SupplierUsers.Create(parentId, fields)
+    } else {
+      return await Users.Create(parentId, fields)
+    }
+  }
+
+  const updateOrderCloudUser = async (fields: Partial<User>) => {
+    if (userType === "buyer") {
+      return await AdminUsers.Patch(currentUser.ID, fields)
+    } else if (userType === "supplier") {
+      return await SupplierUsers.Patch(parentId, currentUser.ID, fields)
+    } else {
+      return await Users.Patch(parentId, currentUser.ID, fields)
+    }
+  }
+
   async function createUser(fields: User) {
-    const createdUser = await userService.Create(parentId, fields)
+    const createdUser = await createOrderCloudUser(fields)
     successToast({
       description: "User created successfully."
     })
     if (router.query.buyerid) {
       router.push(`/buyers/${parentId}/users/${createdUser.ID}`)
-    } else {
+    } else if (router.query.supplierid) {
       router.push(`/suppliers/${parentId}/users/${createdUser.ID}`)
+    } else {
+      router.push(`/settings/adminusers/${createdUser.ID}`)
     }
   }
 
   async function updateUser(fields: User) {
     const diff = getObjectDiff(currentUser, fields)
-    const updatedUser = await userService.Patch(parentId, currentUser.ID, diff)
+    const updatedUser = await updateOrderCloudUser(diff)
     successToast({
       description: "User updated successfully."
     })
@@ -99,22 +130,60 @@ export function UserForm({user, userService}: UserFormProps) {
             <Button onClick={() => router.back()} variant="outline" leftIcon={<TbChevronLeft />}>
               Back
             </Button>
-            <ButtonGroup>
-              <ResetButton control={control} reset={reset} variant="outline">
-                Discard Changes
-              </ResetButton>
-              <SubmitButton control={control} variant="solid" colorScheme="primary">
-                Save
-              </SubmitButton>
-            </ButtonGroup>
+            <ProtectedContent hasAccess={isUserManager}>
+              <ButtonGroup>
+                <ResetButton control={control} reset={reset} variant="outline">
+                  Discard Changes
+                </ResetButton>
+                <SubmitButton control={control} variant="solid" colorScheme="primary">
+                  Save
+                </SubmitButton>
+              </ButtonGroup>
+            </ProtectedContent>
           </CardHeader>
           <CardBody display="flex" flexDirection={"column"} gap={4} maxW={{xl: "container.md"}}>
-            <SwitchControl name="Active" label="Active" control={control} validationSchema={validationSchema} />
-            <InputControl name="Username" label="Username" control={control} validationSchema={validationSchema} />
-            <InputControl name="FirstName" label="First name" control={control} validationSchema={validationSchema} />
-            <InputControl name="LastName" label="Last name" control={control} validationSchema={validationSchema} />
-            <InputControl name="Email" label="Email" control={control} validationSchema={validationSchema} />
-            <InputControl name="Phone" label="Phone" control={control} validationSchema={validationSchema} />
+            <SwitchControl
+              name="Active"
+              label="Active"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isUserManager}
+            />
+            <InputControl
+              name="Username"
+              label="Username"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isUserManager}
+            />
+            <InputControl
+              name="FirstName"
+              label="First name"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isUserManager}
+            />
+            <InputControl
+              name="LastName"
+              label="Last name"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isUserManager}
+            />
+            <InputControl
+              name="Email"
+              label="Email"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isUserManager}
+            />
+            <InputControl
+              name="Phone"
+              label="Phone"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isUserManager}
+            />
           </CardBody>
         </Card>
         {!isCreating && user?.AvailableRoles && (

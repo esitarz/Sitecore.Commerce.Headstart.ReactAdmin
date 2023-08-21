@@ -25,12 +25,16 @@ import {AdminPermissionTable} from "./AdminPermissionTable"
 import {string, boolean, object} from "yup"
 import {getObjectDiff} from "utils"
 import {useSuccessToast} from "hooks/useToast"
+import useHasAccess from "hooks/useHasAccess"
+import {appPermissions} from "config/app-permissions.config"
+import ProtectedContent from "../auth/ProtectedContent"
 
 interface AdminUserFormProps {
   user?: User
   assignedPermissions?: string[]
 }
 export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
+  const isAdminUserManager = useHasAccess(appPermissions.AdminUserManager)
   const [currentUser, setCurrentUser] = useState(user)
   const [isCreating, setIsCreating] = useState(!user?.ID)
 
@@ -116,19 +120,21 @@ export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
   return (
     <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
       <Card as="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-        <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
-          <Button onClick={() => router.back()} variant="outline" leftIcon={<TbChevronLeft />}>
-            Back
-          </Button>
-          <ButtonGroup>
-            <ResetButton control={control} reset={reset} variant="outline">
-              Discard Changes
-            </ResetButton>
-            <SubmitButton control={control} variant="solid" colorScheme="primary">
-              Save
-            </SubmitButton>
-          </ButtonGroup>
-        </CardHeader>
+        <ProtectedContent hasAccess={appPermissions.AdminUserManager}>
+          <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
+            <Button onClick={() => router.back()} variant="outline" leftIcon={<TbChevronLeft />}>
+              Back
+            </Button>
+            <ButtonGroup>
+              <ResetButton control={control} reset={reset} variant="outline">
+                Discard Changes
+              </ResetButton>
+              <SubmitButton control={control} variant="solid" colorScheme="primary">
+                Save
+              </SubmitButton>
+            </ButtonGroup>
+          </CardHeader>
+        </ProtectedContent>
         <CardBody
           display="flex"
           flexWrap={{base: "wrap", lg: "nowrap"}}
@@ -137,13 +143,49 @@ export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
           gap={6}
         >
           <VStack flexBasis={"container.lg"} gap={4} maxW={{xl: "container.md"}}>
-            <SwitchControl name="Active" label="Active" control={control} validationSchema={validationSchema} />
-            <InputControl name="Username" label="Username" control={control} validationSchema={validationSchema} />
+            <SwitchControl
+              name="Active"
+              label="Active"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isAdminUserManager}
+            />
+            <InputControl
+              name="Username"
+              label="Username"
+              control={control}
+              validationSchema={validationSchema}
+              isDisabled={!isAdminUserManager}
+            />
             <SimpleGrid gap={4} w="100%" gridTemplateColumns={{lg: "1fr 1fr"}}>
-              <InputControl name="FirstName" label="First name" control={control} validationSchema={validationSchema} />
-              <InputControl name="LastName" label="Last name" control={control} validationSchema={validationSchema} />
-              <InputControl name="Email" label="Email" control={control} validationSchema={validationSchema} />
-              <InputControl name="Phone" label="Phone" control={control} validationSchema={validationSchema} />
+              <InputControl
+                name="FirstName"
+                label="First name"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isAdminUserManager}
+              />
+              <InputControl
+                name="LastName"
+                label="Last name"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isAdminUserManager}
+              />
+              <InputControl
+                name="Email"
+                label="Email"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isAdminUserManager}
+              />
+              <InputControl
+                name="Phone"
+                label="Phone"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isAdminUserManager}
+              />
             </SimpleGrid>
           </VStack>
           <Box border={`1px solid ${theme.colors.gray[200]}`} flexGrow="1" borderRadius="md">

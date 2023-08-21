@@ -13,11 +13,15 @@ import {TbChevronLeft} from "react-icons/tb"
 import {boolean, number, object, string} from "yup"
 import {useSuccessToast} from "hooks/useToast"
 import {getObjectDiff} from "utils"
+import ProtectedContent from "../auth/ProtectedContent"
+import {appPermissions} from "config/app-permissions.config"
+import useHasAccess from "hooks/useHasAccess"
 
 interface BuyerFormProps {
   buyer?: IBuyer
 }
 export function BuyerForm({buyer}: BuyerFormProps) {
+  const isBuyerManager = useHasAccess(appPermissions.BuyerManager)
   const [currentBuyer, setCurrentBuyer] = useState(buyer)
   const [isCreating, setIsCreating] = useState(!buyer?.ID)
   const router = useRouter()
@@ -88,18 +92,32 @@ export function BuyerForm({buyer}: BuyerFormProps) {
           <Button onClick={() => router.push("/buyers")} variant="outline" leftIcon={<TbChevronLeft />}>
             Back
           </Button>
-          <ButtonGroup>
-            <ResetButton control={control} reset={reset} variant="outline">
-              Discard Changes
-            </ResetButton>
-            <SubmitButton control={control} variant="solid" colorScheme="primary">
-              Save
-            </SubmitButton>
-          </ButtonGroup>
+          <ProtectedContent hasAccess={appPermissions.BuyerManager}>
+            <ButtonGroup>
+              <ResetButton control={control} reset={reset} variant="outline">
+                Discard Changes
+              </ResetButton>
+              <SubmitButton control={control} variant="solid" colorScheme="primary">
+                Save
+              </SubmitButton>
+            </ButtonGroup>
+          </ProtectedContent>
         </CardHeader>
         <CardBody display="flex" flexDirection={"column"} gap={4} maxW={{xl: "container.md"}}>
-          <SwitchControl name="Active" label="Active" control={control} validationSchema={validationSchema} />
-          <InputControl name="Name" label="Buyer Name" control={control} validationSchema={validationSchema} />
+          <SwitchControl
+            name="Active"
+            label="Active"
+            control={control}
+            validationSchema={validationSchema}
+            isDisabled={!isBuyerManager}
+          />
+          <InputControl
+            name="Name"
+            label="Buyer Name"
+            control={control}
+            validationSchema={validationSchema}
+            isDisabled={!isBuyerManager}
+          />
           <SelectControl
             name="DefaultCatalogID"
             label="Default Catalog"
@@ -109,6 +127,7 @@ export function BuyerForm({buyer}: BuyerFormProps) {
             }}
             control={control}
             validationSchema={validationSchema}
+            isDisabled={!isBuyerManager}
           />
 
           {!isCreating && (
@@ -117,6 +136,7 @@ export function BuyerForm({buyer}: BuyerFormProps) {
               label="Date Created"
               control={control}
               validationSchema={validationSchema}
+              isDisabled={!isBuyerManager}
               isReadOnly
             />
           )}
