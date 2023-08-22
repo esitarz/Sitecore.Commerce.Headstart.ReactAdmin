@@ -1,5 +1,5 @@
 import {Button, ButtonGroup, Card, CardBody, CardHeader, Container} from "@chakra-ui/react"
-import {InputControl} from "components/react-hook-form"
+import {InputControl, SelectControl} from "components/react-hook-form"
 import {ProductFacets} from "ordercloud-javascript-sdk"
 import {useRouter} from "hooks/useRouter"
 import {IProductFacet} from "types/ordercloud/IProductFacet"
@@ -8,7 +8,6 @@ import {useForm} from "react-hook-form"
 import ResetButton from "../react-hook-form/reset-button"
 import SubmitButton from "../react-hook-form/submit-button"
 import {TbChevronLeft} from "react-icons/tb"
-import ChipInputControl from "../react-hook-form/chip-input-control"
 import {useEffect, useState} from "react"
 import {useErrorToast, useSuccessToast} from "hooks/useToast"
 import {array, object, string} from "yup"
@@ -129,14 +128,14 @@ export function ProductFacetForm({productFacet}: ProductFacetFormProps) {
             validationSchema={validationSchema}
             isDisabled={!isProductFacetManager}
           />
-          <ChipInputControl
+          <SelectControl
             maxW="sm"
             name="xp.Options"
             label="Options"
             helperText="Create options for this facet group"
-            inputProps={{placeholder: "Add a facet option..."}}
             control={control}
             validationSchema={validationSchema}
+            selectProps={{isCreatable: true, isMulti: true}}
             isDisabled={!isProductFacetManager}
           />
         </CardBody>

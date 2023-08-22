@@ -16,6 +16,7 @@ import {Link} from "./Link"
 import schraTheme from "theme/theme"
 import {useRouter} from "next/router"
 import {useAuth} from "hooks/useAuth"
+import {settingsPageItems} from "@/pages/settings"
 
 interface SidebarMenuProps {
   isInDrawer?: boolean
@@ -76,15 +77,7 @@ const SidebarMenu = ({isInDrawer, onLinkClick}: SidebarMenuProps) => {
       label: "settings",
       path: "/settings",
       icon: TbSettings2,
-      permisshies: [
-        // only one of these is needed to access the settings page
-        appPermissions.AdminUserViewer,
-        appPermissions.AdminUserManager,
-        appPermissions.AdminAddressViewer,
-        appPermissions.AdminAddressManager,
-        appPermissions.ProductFacetViewer,
-        appPermissions.ProductFacetManager
-      ]
+      permisshies: settingsPageItems.map((item) => item.permisshies).flat()
     }
   ]
 

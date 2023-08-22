@@ -1,9 +1,10 @@
 import {ApiRole} from "ordercloud-javascript-sdk"
 
 export type AppPermission =
-  | "SuperAdmin"
   | "ProfileManager"
   | "DashboardViewer"
+  | "SecurityProfileViewer"
+  | "SecurityProfileManager"
   | "ProductViewer"
   | "ProductManager"
   | "PromotionViewer"
@@ -18,8 +19,6 @@ export type AppPermission =
   | "BuyerUserGroupManager"
   | "BuyerCatalogViewer"
   | "BuyerCatalogManager"
-  | "SupplierPermissionViewer"
-  | "SupplierPermissionManager"
   | "SupplierViewer"
   | "SupplierManager"
   | "SupplierUserViewer"
@@ -28,8 +27,6 @@ export type AppPermission =
   | "SupplierUserGroupManager"
   | "SupplierAddressViewer"
   | "SupplierAddressManager"
-  | "AdminPermissionViewer"
-  | "AdminPermissionManager"
   | "AdminUserViewer"
   | "AdminUserManager"
   | "AdminAddressViewer"
@@ -58,31 +55,18 @@ export interface PermissionConfig {
    */
   CustomRoles: string[]
 
+  /**
+   * A list of user types that are allowed to have this permission
+   */
   AllowedUserType: ("Supplier" | "Admin")[]
+
+  /**
+   * How to group permissions in the UI
+   */
+  Group: string
 }
 
 export const appPermissions: Record<AppPermission, PermissionConfig> = {
-  SuperAdmin: {
-    Name: "Super Admin",
-    Description: "Can perform any action, use wisely",
-    Roles: ["FullAccess"],
-    CustomRoles: ["SuperAdmin"],
-    AllowedUserType: ["Admin"]
-  },
-  ProfileManager: {
-    Name: "Profile Manager",
-    Description: "View, and manage my profile, notifications, and theme",
-    Roles: ["MeAdmin"],
-    CustomRoles: ["ProfileManager"],
-    AllowedUserType: ["Supplier", "Admin"]
-  },
-  DashboardViewer: {
-    Name: "Dashboard Viewer",
-    Description: "View dashboard",
-    Roles: ["ProductReader", "OrderReader", "PromotionReader", "BuyerUserReader"],
-    CustomRoles: ["DashboardViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
-  },
   ProductViewer: {
     Name: "Product Viewer",
     Description: "View products",
@@ -99,7 +83,8 @@ export const appPermissions: Record<AppPermission, PermissionConfig> = {
       "SupplierReader"
     ],
     CustomRoles: ["ProductViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Product"
   },
   ProductManager: {
     Name: "Product Manager",
@@ -117,223 +102,247 @@ export const appPermissions: Record<AppPermission, PermissionConfig> = {
       "SupplierReader"
     ],
     CustomRoles: ["ProductManager"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Product"
   },
   PromotionViewer: {
     Name: "Promotion Viewer",
     Description: "View promotions",
     Roles: ["PromotionReader"],
     CustomRoles: ["PromotionViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Product"
   },
   PromotionManager: {
     Name: "Promotion Manager",
     Description: "View, and manage promotions",
     Roles: ["PromotionAdmin"],
     CustomRoles: ["PromotionManager"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Product"
   },
   OrderViewer: {
     Name: "Order Viewer",
     Description: "View orders, shipments, and order returns",
     Roles: ["OrderReader", "ShipmentReader", "SupplierReader", "SupplierAddressReader"],
     CustomRoles: ["OrderViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Order"
   },
   OrderManager: {
     Name: "Order Manager",
     Description: "View and manage orders, shipments, and order returns",
     Roles: ["OrderAdmin", "ShipmentAdmin", "SupplierReader", "SupplierAddressReader"],
     CustomRoles: ["OrderManager"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Order"
   },
   BuyerViewer: {
     Name: "Buyer Viewer",
     Description: "View buyers",
     Roles: ["BuyerReader", "CatalogReader"],
     CustomRoles: ["BuyerViewer"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   BuyerManager: {
     Name: "Buyer Manager",
     Description: "View, and manage buyers",
     Roles: ["BuyerAdmin", "CatalogReader"],
     CustomRoles: ["BuyerManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   BuyerUserViewer: {
     Name: "Buyer User Viewer",
-    Description: "View buyer users. This permission should be paired with either BuyerViewer or BuyerManager",
+    Description: "View buyer users",
     Roles: ["BuyerUserReader"],
     CustomRoles: ["BuyerUserViewer"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   BuyerUserManager: {
     Name: "Buyer User Manager",
-    Description:
-      "View, and manage buyer users. This permission should be paired with either BuyerViewer or BuyerManager",
+    Description: "View, and manage buyer users",
     Roles: ["BuyerUserAdmin"],
     CustomRoles: ["BuyerUserManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   BuyerUserGroupViewer: {
     Name: "Buyer User Group Viewer",
-    Description: "View buyer user groups. This permission should be paired with either BuyerViewer or BuyerManager",
+    Description: "View buyer user groups",
     Roles: ["UserGroupReader"],
     CustomRoles: ["BuyerUserGroupViewer"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   BuyerUserGroupManager: {
     Name: "Buyer User Group Manager",
-    Description:
-      "View, and manage buyer user groups. This permission should be paired with either BuyerViewer or BuyerManager",
+    Description: "View, and manage buyer user groups",
     Roles: ["UserGroupAdmin"],
     CustomRoles: ["BuyerUserGroupManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   BuyerCatalogViewer: {
-    Name: "Catalog Viewer",
-    Description: "View catalogs. This permission should be paired with either BuyerViewer or BuyerManager",
+    Name: "Buyer Catalog Viewer",
+    Description: "View catalogs",
     Roles: ["CatalogReader", "CategoryReader"],
     CustomRoles: ["BuyerCatalogViewer"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   BuyerCatalogManager: {
-    Name: "Catalog Manager",
-    Description: "View, and manage catalogs. This permission should be paired with either BuyerViewer or BuyerManager",
+    Name: "Buyer Catalog Manager",
+    Description: "View, and manage catalogs",
     Roles: ["CatalogAdmin", "CategoryAdmin"],
     CustomRoles: ["BuyerCatalogManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Buyer"
   },
   SupplierViewer: {
     Name: "Supplier Viewer",
     Description: "View suppliers",
     Roles: ["SupplierReader"],
     CustomRoles: ["SupplierViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   SupplierManager: {
     Name: "Supplier Manager",
     Description: "View, and manage suppliers",
     Roles: ["SupplierAdmin"],
     CustomRoles: ["SupplierManager"],
-    AllowedUserType: ["Supplier", "Admin"]
-  },
-  SupplierPermissionViewer: {
-    Name: "Supplier Permission Viewer",
-    Description: "View supplier permissions",
-    Roles: ["SecurityProfileReader"],
-    CustomRoles: ["SupplierPermissionViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
-  },
-  SupplierPermissionManager: {
-    Name: "Supplier Permission Manager",
-    Description: "View, and manage supplier permissions",
-    Roles: ["SecurityProfileAdmin"],
-    CustomRoles: ["SupplierPermissionManager"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   SupplierUserViewer: {
     Name: "Supplier User Viewer",
-    Description: "View supplier users. This permission should be paired with either SupplierViewer or SupplierManager",
+    Description: "View supplier users",
     Roles: ["SupplierUserReader"],
     CustomRoles: ["SupplierUserViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   SupplierUserManager: {
     Name: "Supplier User Manager",
-    Description:
-      "View, and manage supplier users. This permission should be paired with either SupplierViewer or SupplierManager",
+    Description: "View, and manage supplier users",
     Roles: ["SupplierUserAdmin"],
     CustomRoles: ["SupplierUserManager"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   SupplierUserGroupViewer: {
     Name: "Supplier User Group Viewer",
-    Description:
-      "View supplier user groups. This permission should be paired with either SupplierViewer or SupplierManager",
+    Description: "View supplier user groups",
     Roles: ["SupplierUserGroupReader"],
     CustomRoles: ["SupplierUserGroupViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   SupplierUserGroupManager: {
     Name: "Supplier User Group Manager",
-    Description:
-      "View, and manage supplier user groups. This permission should be paired with either SupplierViewer or SupplierManager",
+    Description: "View, and manage supplier user groups",
     Roles: ["SupplierUserGroupAdmin"],
     CustomRoles: ["SupplierUserGroupManager"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   SupplierAddressViewer: {
     Name: "Supplier Address Viewer",
-    Description:
-      "View supplier addresses. This permission should be paired with either SupplierViewer or SupplierManager",
+    Description: "View supplier addresses",
     Roles: ["SupplierAddressReader"],
     CustomRoles: ["SupplierAddressViewer"],
-    AllowedUserType: ["Supplier", "Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   SupplierAddressManager: {
     Name: "Supplier Address Manager",
-    Description:
-      "View, and manage supplier addresses. This permission should be paired with either SupplierViewer or SupplierManager",
+    Description: "View, and manage supplier addresses",
     Roles: ["SupplierAddressAdmin"],
     CustomRoles: ["SupplierAddressManager"],
-    AllowedUserType: ["Supplier", "Admin"]
-  },
-  AdminPermissionViewer: {
-    Name: "Admin Permission Viewer",
-    Description: "View admin permissions",
-    Roles: ["SecurityProfileReader"],
-    CustomRoles: ["AdminPermissionViewer"],
-    AllowedUserType: ["Admin"]
-  },
-  AdminPermissionManager: {
-    Name: "Admin Permission Manager",
-    Description: "View, and manage admin permissions",
-    Roles: ["SecurityProfileAdmin"],
-    CustomRoles: ["AdminPermissionManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Supplier"
   },
   AdminUserViewer: {
     Name: "Admin User Viewer",
     Description: "View admin users",
     Roles: ["AdminUserReader", "AdminUserGroupReader"],
     CustomRoles: ["AdminUserViewer"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Admin"
   },
   AdminUserManager: {
     Name: "Admin User Manager",
     Description: "View, and manage admin users",
     Roles: ["AdminUserAdmin", "AdminUserGroupReader"],
     CustomRoles: ["AdminUserManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Admin"
   },
   AdminAddressViewer: {
     Name: "Admin Address Viewer",
     Description: "View admin addresses",
     Roles: ["AdminAddressReader"],
     CustomRoles: ["AdminAddressViewer"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Admin"
   },
   AdminAddressManager: {
     Name: "Admin Address Manager",
     Description: "View, and manage admin addresses",
     Roles: ["AdminAddressAdmin"],
     CustomRoles: ["AdminAddressManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Admin"
   },
   ProductFacetViewer: {
     Name: "Product Facet Viewer",
     Description: "View product facets",
     Roles: ["ProductFacetReader"],
     CustomRoles: ["ProductFacetViewer"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Admin"
   },
   ProductFacetManager: {
     Name: "Product Facet Manager",
     Description: "View, and manage product facets",
     Roles: ["ProductFacetAdmin"],
     CustomRoles: ["ProductFacetManager"],
-    AllowedUserType: ["Admin"]
+    AllowedUserType: ["Admin"],
+    Group: "Admin"
+  },
+  SecurityProfileViewer: {
+    Name: "Security Profile Viewer",
+    Description: "View security profiles",
+    Roles: ["SecurityProfileReader", "SupplierUserGroupReader", "AdminUserGroupReader", "UserGroupReader"],
+    CustomRoles: ["SecurityProfileViewer"],
+    AllowedUserType: ["Admin"],
+    Group: "Security"
+  },
+  SecurityProfileManager: {
+    Name: "Security Profile Manager",
+    Description: "View, and manage security profiles, as well as view and manage assignments to users, and companies",
+    Roles: ["SecurityProfileAdmin", "SupplierUserGroupAdmin", "AdminUserGroupAdmin", "UserGroupAdmin"],
+    CustomRoles: ["SecurityProfileManager"],
+    AllowedUserType: ["Admin"],
+    Group: "Security"
+  },
+  ProfileManager: {
+    Name: "Profile Manager",
+    Description: "View, and manage own profile, notifications, and theme",
+    Roles: ["MeAdmin"],
+    CustomRoles: ["ProfileManager"],
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Miscellaneous"
+  },
+  DashboardViewer: {
+    Name: "Dashboard Viewer",
+    Description: "View dashboard reports",
+    Roles: ["ProductReader", "OrderReader", "PromotionReader", "BuyerUserReader"],
+    CustomRoles: ["DashboardViewer"],
+    AllowedUserType: ["Supplier", "Admin"],
+    Group: "Miscellaneous"
   }
 }

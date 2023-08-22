@@ -40,7 +40,12 @@ export function ShippingAndInventoryCard({control, validationSchema, ...cardProp
             {shipsFromMultipleLocations ? (
               <MultiShippingSelector control={control} validationSchema={validationSchema} />
             ) : (
-              <SingleShippingSelector width="md" control={control} validationSchema={validationSchema} />
+              <SingleShippingSelector
+                selectProps={{}}
+                width="md"
+                control={control}
+                validationSchema={validationSchema}
+              />
             )}
           </VStack>
           {!shipsFromMultipleLocations && <Divider />}
