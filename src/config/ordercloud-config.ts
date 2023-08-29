@@ -15,8 +15,8 @@ const appRoles = uniq(
 
 function testRoles() {
   const permissions = [appPermissions.SecurityProfileManager, appPermissions.AdminUserManager]
-  return flatten(permissions.map((permission) => [...permission.Roles, ...permission.CustomRoles])) as ApiRole[]
-  // return ["FullAccess"] as ApiRole[]
+  // return flatten(permissions.map((permission) => [...permission.Roles, ...permission.CustomRoles])) as ApiRole[]
+  return ["FullAccess"] as ApiRole[]
 }
 
 export interface OcConfig {

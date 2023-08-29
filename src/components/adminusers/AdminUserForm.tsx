@@ -1,39 +1,29 @@
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  Card,
-  CardBody,
-  CardHeader,
-  Container,
-  SimpleGrid,
-  theme,
-  VStack
-} from "@chakra-ui/react"
+import {Button, ButtonGroup, Card, CardBody, CardHeader, Container, SimpleGrid, VStack} from "@chakra-ui/react"
 import {InputControl, SwitchControl} from "components/react-hook-form"
-import {AdminUserGroups, AdminUsers, User} from "ordercloud-javascript-sdk"
+import {AdminUsers, SecurityProfile, SecurityProfileAssignment, User} from "ordercloud-javascript-sdk"
 import {useRouter} from "hooks/useRouter"
 import {useEffect, useState} from "react"
-import {isEqual, sortBy, difference} from "lodash"
 import {IAdminUser} from "types/ordercloud/IAdminUser"
 import {useForm} from "react-hook-form"
 import {yupResolver} from "@hookform/resolvers/yup"
 import SubmitButton from "../react-hook-form/submit-button"
 import ResetButton from "../react-hook-form/reset-button"
 import {TbChevronLeft} from "react-icons/tb"
-import {AdminPermissionTable} from "./AdminPermissionTable"
 import {string, boolean, object} from "yup"
 import {getObjectDiff} from "utils"
 import {useSuccessToast} from "hooks/useToast"
 import useHasAccess from "hooks/useHasAccess"
 import {appPermissions} from "config/app-permissions.config"
 import ProtectedContent from "../auth/ProtectedContent"
+import {SecurityProfileAssignmentTabs} from "../security-profiles/assignments/SecurityProfileAssignmentTabs"
 
 interface AdminUserFormProps {
   user?: User
-  assignedPermissions?: string[]
+  securityProfiles?: SecurityProfile[]
+  securityProfileAssignments?: SecurityProfileAssignment[]
+  refresh?: () => void
 }
-export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
+export function AdminUserForm({user, securityProfiles, securityProfileAssignments, refresh}: AdminUserFormProps) {
   const isAdminUserManager = useHasAccess(appPermissions.AdminUserManager)
   const [currentUser, setCurrentUser] = useState(user)
   const [isCreating, setIsCreating] = useState(!user?.ID)
@@ -58,12 +48,6 @@ export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
     Active: boolean()
   })
 
-  const [permissions, setPermissions] = useState(assignedPermissions || [])
-
-  const handlePermissionChange = (updatedPermissions: string[]) => {
-    setPermissions(updatedPermissions)
-  }
-
   const {handleSubmit, control, reset} = useForm<IAdminUser>({
     resolver: yupResolver(validationSchema),
     defaultValues: user || defaultValues,
@@ -73,10 +57,6 @@ export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
   async function createUser(fields: IAdminUser) {
     const createdUser = await AdminUsers.Create<IAdminUser>(fields)
     setCurrentUser(createdUser)
-    const permissionsToAdd = permissions.map((permission) =>
-      AdminUserGroups.SaveUserAssignment({UserGroupID: permission, UserID: createdUser.ID})
-    )
-    await Promise.all(permissionsToAdd)
     successToast({
       description: "User created successfully."
     })
@@ -88,19 +68,8 @@ export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
     const updatedUser = await AdminUsers.Patch<IAdminUser>(fields.ID, diff)
     setCurrentUser(updatedUser)
 
-    const permissionsChanged = !isEqual(sortBy(assignedPermissions), sortBy(permissions))
     let successMessage = "User updated successfully."
-    if (permissionsChanged) {
-      const permissionsToAdd = difference(permissions, assignedPermissions).map((permission) =>
-        AdminUserGroups.SaveUserAssignment({UserGroupID: permission, UserID: updatedUser.ID})
-      )
-      const permissionsToRemove = difference(assignedPermissions, permissions).map((permission) =>
-        AdminUserGroups.DeleteUserAssignment(permission, updatedUser.ID)
-      )
 
-      await Promise.all([...permissionsToAdd, ...permissionsToRemove])
-      successMessage += " Please note, user will need to log out and back in for permission changes to take effect."
-    }
     successToast({
       description: successMessage
     })
@@ -187,13 +156,18 @@ export function AdminUserForm({user, assignedPermissions}: AdminUserFormProps) {
                 isDisabled={!isAdminUserManager}
               />
             </SimpleGrid>
+            {!isCreating && (
+              <SecurityProfileAssignmentTabs
+                assignedRoles={user.AvailableRoles}
+                securityProfiles={securityProfiles}
+                assignments={securityProfileAssignments}
+                commerceRole="admin"
+                assignmentLevel="user"
+                assignmentLevelId={user.ID}
+                onUpdateAssignments={refresh}
+              />
+            )}
           </VStack>
-          <Box border={`1px solid ${theme.colors.gray[200]}`} flexGrow="1" borderRadius="md">
-            <AdminPermissionTable
-              onPermissionChange={handlePermissionChange}
-              assignedPermissions={assignedPermissions || []}
-            />
-          </Box>
         </CardBody>
       </Card>
     </Container>

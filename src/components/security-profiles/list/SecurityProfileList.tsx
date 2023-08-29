@@ -41,20 +41,26 @@ const IdColumn: DataTableColumn<SecurityProfile> = {
 }
 
 const NumberFeaturesColumn: DataTableColumn<SecurityProfile> = {
-  header: "# of Admin Features",
+  header: "# Admin Features",
   accessor: "Roles",
-  cell: ({row, value}) => {
-    const securityProfileRoles = value as string[]
-    const features = Object.values(appPermissions).filter((permission) =>
-      isAllowedAccess(securityProfileRoles, permission)
-    )
+  cell: ({row}) => {
+    const roles = row.original.Roles
+    const customRoles = row.original.CustomRoles
+    const allRoles = [...roles, ...customRoles]
+    const features = Object.values(appPermissions).filter((permission) => isAllowedAccess(allRoles, permission))
     return <Text>{features.length}</Text>
   }
 }
 
 const NumberRolesColumn: DataTableColumn<SecurityProfile> = {
-  header: "# of Roles",
+  header: "# Roles",
   accessor: "Roles",
+  cell: ({row, value}) => <Text>{value.length}</Text>
+}
+
+const NumberCustomRolesColumn: DataTableColumn<SecurityProfile> = {
+  header: "# Custom Roles",
+  accessor: "CustomRoles",
   cell: ({row, value}) => <Text>{value.length}</Text>
 }
 
@@ -62,7 +68,7 @@ const NameColumn: DataTableColumn<SecurityProfile> = {
   header: "NAME",
   accessor: "Name",
   cell: ({row, value}) => (
-    <Link passHref href={"/securityprofiles/" + row.original.ID}>
+    <Link passHref href={"/settings/securityprofiles/" + row.original.ID}>
       <Text as="a" noOfLines={2} title={value}>
         {value}
       </Text>
@@ -75,7 +81,7 @@ const SecurityProfileTableOptions: ListViewTableOptions<SecurityProfile> = {
     base: [IdColumn, NameColumn],
     md: [IdColumn, NameColumn],
     lg: [IdColumn, NameColumn],
-    xl: [IdColumn, NameColumn, NumberFeaturesColumn, NumberRolesColumn]
+    xl: [IdColumn, NameColumn, NumberFeaturesColumn, NumberRolesColumn, NumberCustomRolesColumn]
   }
 }
 

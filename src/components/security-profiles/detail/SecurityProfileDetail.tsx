@@ -9,7 +9,7 @@ import {useSuccessToast} from "hooks/useToast"
 import {useRouter} from "next/router"
 import {SecurityProfile, SecurityProfiles} from "ordercloud-javascript-sdk"
 import {useEffect, useState} from "react"
-import {useForm} from "react-hook-form"
+import {useController, useForm} from "react-hook-form"
 import {TbChevronLeft} from "react-icons/tb"
 import {object, string} from "yup"
 import {FeatureList} from "./FeatureList"
@@ -54,6 +54,9 @@ export function SecurityProfileDetail({securityProfile, isAssignedToAllAdmins}: 
       : defaultValues,
     mode: "onBlur"
   })
+
+  const roles = useController({name: "SecurityProfile.Roles", control})
+  const customRoles = useController({name: "SecurityProfile.CustomRoles", control})
 
   const createSecurityProfile = async (fields: SecurityProfileForm) => {
     const createdSecurityProfile = await SecurityProfiles.Create(fields.SecurityProfile)
@@ -150,6 +153,13 @@ export function SecurityProfileDetail({securityProfile, isAssignedToAllAdmins}: 
               validationSchema={validationSchema}
               isDisabled={!isSecurityProfileManager}
             />
+            <FeatureList
+              roles={roles.field.value}
+              customRoles={customRoles.field.value}
+              onRolesChange={roles.field.onChange}
+              onCustomRolesChange={customRoles.field.onChange}
+              isDisabled={!isSecurityProfileManager}
+            />
             <SelectControl
               name="SecurityProfile.Roles"
               label="Roles"
@@ -168,7 +178,6 @@ export function SecurityProfileDetail({securityProfile, isAssignedToAllAdmins}: 
               validationSchema={validationSchema}
               selectProps={{isCreatable: true, isMulti: true, isDisabled: !isSecurityProfileManager}}
             />
-            <FeatureList control={control} />
           </VStack>
         </CardBody>
       </Card>

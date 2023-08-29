@@ -14,20 +14,26 @@ import {
   FormLabel
 } from "@chakra-ui/react"
 import {PermissionConfig, appPermissions} from "config/app-permissions.config"
-import useHasAccess, {isAllowedAccess} from "hooks/useHasAccess"
+import {isAllowedAccess} from "hooks/useHasAccess"
 import {groupBy, uniq} from "lodash"
-import {Control, useController} from "react-hook-form"
-import {SecurityProfileForm} from "./SecurityProfileDetail"
+import {ApiRole} from "ordercloud-javascript-sdk"
 
 interface FeatureListProps {
-  control: Control<SecurityProfileForm>
+  roles: ApiRole[]
+  customRoles: string[]
+  isDisabled: boolean
+  onRolesChange?: (roles: ApiRole[]) => void
+  onCustomRolesChange?: (customRoles: string[]) => void
 }
 
-export function FeatureList({control}: FeatureListProps) {
-  const isSecurityProfileManager = useHasAccess(appPermissions.SecurityProfileManager)
-  const roles = useController({name: "SecurityProfile.Roles", control})
-  const customRoles = useController({name: "SecurityProfile.CustomRoles", control})
-  const allRoles = [...(roles.field.value || []), ...(customRoles.field.value || [])]
+export function FeatureList({
+  roles = [],
+  customRoles = [],
+  onRolesChange,
+  onCustomRolesChange,
+  isDisabled
+}: FeatureListProps) {
+  const allRoles = [...roles, ...customRoles]
   const features = Object.values(appPermissions)
   const groupedFeatures = groupBy(features, (f) => f.Group)
 
@@ -51,9 +57,9 @@ export function FeatureList({control}: FeatureListProps) {
     const newRoles = uniq(enabledFeatures.map((f) => f.Roles).flat())
     const newCustomRoles = uniq(enabledFeatures.map((f) => f.CustomRoles).flat())
 
-    // propogate role changes to form
-    roles.field.onChange(newRoles)
-    customRoles.field.onChange(newCustomRoles)
+    // propogate role changes up to parent component
+    onRolesChange(newRoles)
+    onCustomRolesChange(newCustomRoles)
   }
 
   const isFeatureEnabled = (feature: PermissionConfig) => {
@@ -90,7 +96,7 @@ export function FeatureList({control}: FeatureListProps) {
                       <Checkbox
                         isChecked={isFeatureEnabled(feature)}
                         onChange={() => handleChange(feature.Name)}
-                        isDisabled={!isSecurityProfileManager}
+                        isDisabled={isDisabled}
                       />
                       <Text>{feature.Name}</Text>
                     </HStack>
