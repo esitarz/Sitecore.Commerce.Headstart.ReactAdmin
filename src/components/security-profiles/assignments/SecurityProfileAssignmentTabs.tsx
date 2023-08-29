@@ -100,7 +100,7 @@ export function SecurityProfileAssignmentTabs({
       <FormControl>
         <FormLabel>Security Profile Roles</FormLabel>
       </FormControl>
-      <Tabs width="full">
+      <Tabs width="full" isLazy={true}>
         <TabList>
           <Tab>Assigned</Tab>
           {tabData.map((tab, index) => (

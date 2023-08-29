@@ -78,31 +78,38 @@ export function FeatureList({
           const featuresEnabledCount = getFeaturesEnabledCount(features)
           return (
             <AccordionItem key={groupName}>
-              <AccordionButton>
-                <Heading as="h3" size="sm" fontWeight="medium" flex="1" textAlign="left">
-                  {groupName}
-                </Heading>
-                <Box>
-                  <Badge fontWeight="semibold">
-                    {featuresEnabledCount} / {features.length} enabled
-                  </Badge>
-                  <AccordionIcon marginLeft={3} />
-                </Box>
-              </AccordionButton>
-              <AccordionPanel>
-                <VStack alignItems="flex-start">
-                  {features.map((feature) => (
-                    <HStack key={feature.Name} justifyContent="space-between">
-                      <Checkbox
-                        isChecked={isFeatureEnabled(feature)}
-                        onChange={() => handleChange(feature.Name)}
-                        isDisabled={isDisabled}
-                      />
-                      <Text>{feature.Name}</Text>
-                    </HStack>
-                  ))}
-                </VStack>
-              </AccordionPanel>
+              {({isExpanded}) => (
+                <>
+                  <AccordionButton>
+                    <Heading as="h3" size="sm" fontWeight="medium" flex="1" textAlign="left">
+                      {groupName}
+                    </Heading>
+                    <Box>
+                      <Badge fontWeight="semibold">
+                        {featuresEnabledCount} / {features.length} enabled
+                      </Badge>
+                      <AccordionIcon marginLeft={3} />
+                    </Box>
+                  </AccordionButton>
+                  <AccordionPanel>
+                    {/* Don't render unless panel is expanded (lazy loading for performance) */}
+                    {isExpanded && (
+                      <VStack alignItems="flex-start">
+                        {features.map((feature) => (
+                          <HStack key={feature.Name} justifyContent="space-between">
+                            <Checkbox
+                              isChecked={isFeatureEnabled(feature)}
+                              onChange={() => handleChange(feature.Name)}
+                              isDisabled={isDisabled}
+                            />
+                            <Text>{feature.Name}</Text>
+                          </HStack>
+                        ))}
+                      </VStack>
+                    )}
+                  </AccordionPanel>
+                </>
+              )}
             </AccordionItem>
           )
         })}

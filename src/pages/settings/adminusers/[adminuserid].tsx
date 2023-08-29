@@ -15,12 +15,19 @@ import {useRouter} from "hooks/useRouter"
 import {IAdminUser} from "types/ordercloud/IAdminUser"
 import {uniq} from "lodash"
 
+interface SecurityProfilesAndAssignments {
+  SecurityProfiles: SecurityProfile[]
+  Assignments: SecurityProfileAssignment[]
+}
+
 const AdminUserListItem = () => {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [adminUser, setAdminUser] = useState({} as User)
-  const [securityProfiles, setSecurityProfiles] = useState([] as SecurityProfile[])
-  const [securityProfileAssignments, setSecurityProfileAssignments] = useState([] as SecurityProfileAssignment[])
+  const [securityProfileAndAssignments, setSecurityProfileAndAssignments] = useState({
+    SecurityProfiles: [],
+    Assignments: []
+  } as SecurityProfilesAndAssignments)
 
   const getSecurityProfileAssignments = useCallback(async (adminUserId: string) => {
     const [userAssignmentList, groupAssignmentList, companyAssignmentList] = await Promise.all([
@@ -37,7 +44,6 @@ const AdminUserListItem = () => {
       await SecurityProfiles.ListAssignments({level: "Company", commerceRole: "Seller"})
     ])
     const assignments = [...userAssignmentList.Items, ...groupAssignmentList, ...companyAssignmentList.Items]
-    setSecurityProfileAssignments(assignments)
     return assignments
   }, [])
 
@@ -45,7 +51,7 @@ const AdminUserListItem = () => {
     const securityProfileIds = uniq(securityProfileAssignments.map((assignment) => assignment.SecurityProfileID))
     const response = await SecurityProfiles.List({filters: {ID: securityProfileIds.join("|")}, pageSize: 100})
     const profiles = response.Items
-    setSecurityProfiles(profiles)
+    setSecurityProfileAndAssignments({SecurityProfiles: profiles, Assignments: securityProfileAssignments})
     return profiles
   }, [])
 
@@ -82,8 +88,8 @@ const AdminUserListItem = () => {
   return (
     <AdminUserForm
       user={adminUser}
-      securityProfiles={securityProfiles}
-      securityProfileAssignments={securityProfileAssignments}
+      securityProfiles={securityProfileAndAssignments.SecurityProfiles}
+      securityProfileAssignments={securityProfileAndAssignments.Assignments}
       refresh={() => initialize(adminUser.ID)}
     />
   )
