@@ -11,7 +11,7 @@ export function useAuth() {
   const router = useRouter()
 
   async function Login(username: string, password: string, remember: boolean): Promise<void> {
-    const response = await Auth.Login(username, password, ocConfig.clientId, ocConfig.scope)
+    const response = await Auth.Login(username, password, ocConfig.clientId)
     setUserTokens(response.access_token, remember && response.refresh_token)
     const me = await Me.Get<IMeAdminUser | IMeSupplierUser>()
     localStorage.setItem("usersToken", `${me.FirstName} ${me.LastName}`)

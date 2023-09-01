@@ -5,37 +5,57 @@ import {
   CardBody,
   CardHeader,
   Container,
-  Heading,
-  List,
-  ListIcon,
-  ListItem
+  Icon,
+  IconButton,
+  SimpleGrid,
+  VStack
 } from "@chakra-ui/react"
-import {MdCheckCircle} from "react-icons/md"
-import {AdminUsers, SupplierUsers, User, Users} from "ordercloud-javascript-sdk"
+import {InputControl, SwitchControl} from "components/react-hook-form"
+import {
+  AdminUsers,
+  PartialDeep,
+  SecurityProfileAssignment,
+  SecurityProfiles,
+  SupplierUsers,
+  User,
+  Users
+} from "ordercloud-javascript-sdk"
 import {useRouter} from "hooks/useRouter"
-import {useEffect, useState} from "react"
-import {yupResolver} from "@hookform/resolvers/yup"
 import {useForm} from "react-hook-form"
-import {InputControl, SwitchControl} from "../react-hook-form"
-import {TbChevronLeft} from "react-icons/tb"
-import ResetButton from "../react-hook-form/reset-button"
+import {yupResolver} from "@hookform/resolvers/yup"
 import SubmitButton from "../react-hook-form/submit-button"
+import ResetButton from "../react-hook-form/reset-button"
+import {TbChevronLeft} from "react-icons/tb"
+import {string, boolean, object, array, ref} from "yup"
+import {getObjectDiff, orderCloudPasswordRegex} from "utils"
 import {useSuccessToast} from "hooks/useToast"
-import {boolean, object, string} from "yup"
-import {getObjectDiff} from "utils"
-import ProtectedContent from "../auth/ProtectedContent"
-import {appPermissions} from "config/app-permissions.config"
 import useHasAccess from "hooks/useHasAccess"
+import {appPermissions} from "config/app-permissions.config"
+import ProtectedContent from "../auth/ProtectedContent"
+import {SecurityProfileAssignmentTabs} from "../security-profiles/assignments/SecurityProfileAssignmentTabs"
+import {differenceBy, isEmpty, omit} from "lodash"
+import {useState} from "react"
+import {FaEye, FaEyeSlash} from "react-icons/fa"
+
+interface FormFieldValues {
+  User: User
+  SecurityProfileAssignments: SecurityProfileAssignment[]
+}
 
 interface UserFormProps {
   user?: User
   userType: "buyer" | "supplier" | "admin"
+  parentId?: string
+  securityProfileAssignments: SecurityProfileAssignment[]
+  refresh?: () => void
 }
-export function UserForm({user, userType}: UserFormProps) {
-  const [currentUser, setCurrentUser] = useState(user)
-  const [isCreating, setIsCreating] = useState(!user?.ID)
+export function UserForm({user, userType, parentId, securityProfileAssignments = [], refresh}: UserFormProps) {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const router = useRouter()
   const successToast = useSuccessToast()
+  const isCreating = !user?.ID
+
   const isUserManager = useHasAccess(
     userType === "admin"
       ? appPermissions.AdminUserManager
@@ -44,54 +64,84 @@ export function UserForm({user, userType}: UserFormProps) {
       : appPermissions.BuyerUserManager
   )
 
-  useEffect(() => {
-    setIsCreating(!currentUser?.ID)
-  }, [currentUser?.ID])
-
-  const defaultValues: Partial<User> = {
-    Active: true
+  const defaultValues: PartialDeep<FormFieldValues> = {
+    User: {
+      Active: true
+    },
+    SecurityProfileAssignments: securityProfileAssignments
   }
 
   const validationSchema = object().shape({
-    Active: boolean(),
-    Username: string().max(100).required("Name is required"),
-    FirstName: string().required("First Name is required"),
-    LastName: string().required("Last Name is required"),
-    Email: string().email("Email is invalid").required("Email is required")
+    User: object().shape({
+      Active: boolean(),
+      Username: string().max(100).required("Username is required"),
+      Password: string()
+        .nullable()
+        .test({
+          name: "password",
+          message:
+            "Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, and a number",
+          test: (val) => {
+            // setting a password is optional, only validate password is there a value to validate against
+            if (val?.length > 0) {
+              return orderCloudPasswordRegex.test(val)
+            } else {
+              return true
+            }
+          }
+        }),
+      ConfirmPassword: string()
+        .when("Password", {
+          // setting a password is optional, but if it's set, confirm password is required
+          is: (val) => val?.length > 0,
+          then: (schema) => schema.required()
+        })
+        .oneOf([ref("Password")], "Passwords do not match"),
+      FirstName: string().required("First Name is required"),
+      LastName: string().required("Last Name is required"),
+      Email: string().email("Email is invalid").required("Email is required"),
+      Phone: string().nullable()
+    }),
+    SecurityProfileAssignments: array().of(
+      object().shape({
+        SecurityProfileID: string().required("Security Profile is required")
+      })
+    )
   })
-
-  const {handleSubmit, control, reset} = useForm({
-    resolver: yupResolver(validationSchema),
-    defaultValues: user || defaultValues,
-    mode: "onBlur"
-  })
-
-  let parentId
-  if (router.query.buyerid !== undefined) parentId = router.query.buyerid
-  if (router.query.supplierid !== undefined) parentId = router.query.supplierid
 
   const createOrderCloudUser = async (fields: User) => {
     if (userType === "buyer") {
-      return await AdminUsers.Create(fields)
+      return await Users.Create(parentId, fields)
     } else if (userType === "supplier") {
       return await SupplierUsers.Create(parentId, fields)
     } else {
-      return await Users.Create(parentId, fields)
+      return await AdminUsers.Create(fields)
     }
   }
 
   const updateOrderCloudUser = async (fields: Partial<User>) => {
     if (userType === "buyer") {
-      return await AdminUsers.Patch(currentUser.ID, fields)
+      return await Users.Patch(parentId, user.ID, fields)
     } else if (userType === "supplier") {
-      return await SupplierUsers.Patch(parentId, currentUser.ID, fields)
+      return await SupplierUsers.Patch(parentId, user.ID, fields)
     } else {
-      return await Users.Patch(parentId, currentUser.ID, fields)
+      return await AdminUsers.Patch(user.ID, fields)
     }
   }
 
-  async function createUser(fields: User) {
-    const createdUser = await createOrderCloudUser(fields)
+  const {handleSubmit, control, reset} = useForm<FormFieldValues>({
+    resolver: yupResolver(validationSchema),
+    defaultValues: user?.ID ? {User: user, SecurityProfileAssignments: securityProfileAssignments} : defaultValues,
+    mode: "onBlur"
+  })
+
+  async function createUser(fields: FormFieldValues) {
+    const createdUser = await createOrderCloudUser(fields.User)
+    const assignmentRequests = fields.SecurityProfileAssignments.map((assignment) => {
+      assignment.UserID = createdUser.ID
+      return SecurityProfiles.SaveAssignment(assignment)
+    })
+    await Promise.all(assignmentRequests)
     successToast({
       description: "User created successfully."
     })
@@ -104,17 +154,50 @@ export function UserForm({user, userType}: UserFormProps) {
     }
   }
 
-  async function updateUser(fields: User) {
-    const diff = getObjectDiff(currentUser, fields)
-    const updatedUser = await updateOrderCloudUser(diff)
+  async function updateUser(fields: FormFieldValues) {
+    const userDiff = omit(getObjectDiff(user, fields.User), "AvailableRoles")
+    if (!isEmpty(userDiff)) {
+      await updateOrderCloudUser(userDiff)
+    }
+
+    const assignmentsDiff = getObjectDiff(securityProfileAssignments, fields.SecurityProfileAssignments)
+    if (!isEmpty(assignmentsDiff)) {
+      await updateSecurityProfileAssignments(fields.SecurityProfileAssignments)
+    }
+
     successToast({
       description: "User updated successfully."
     })
-    setCurrentUser(updatedUser)
-    reset(updatedUser)
+
+    refresh()
   }
 
-  async function onSubmit(fields: User) {
+  async function updateSecurityProfileAssignments(newAssignments: SecurityProfileAssignment[]) {
+    const addAssignments = differenceBy(
+      newAssignments,
+      securityProfileAssignments,
+      (ass) => ass.BuyerID + ass.SecurityProfileID + ass.SupplierID + ass.UserGroupID + ass.UserID
+    )
+    const deleteAssignments = differenceBy(
+      securityProfileAssignments,
+      newAssignments,
+      (ass) => ass.BuyerID + ass.SecurityProfileID + ass.SupplierID + ass.UserGroupID + ass.UserID
+    )
+
+    const addAssignmentRequests = addAssignments.map((assignment) => SecurityProfiles.SaveAssignment(assignment))
+    const deleteAssignmentRequests = deleteAssignments.map((assignment) =>
+      SecurityProfiles.DeleteAssignment(assignment.SecurityProfileID, {
+        buyerID: assignment.BuyerID,
+        supplierID: assignment.SupplierID,
+        userGroupID: assignment.UserGroupID,
+        userID: assignment.UserID
+      })
+    )
+
+    await Promise.all([...addAssignmentRequests, ...deleteAssignmentRequests])
+  }
+
+  async function onSubmit(fields: FormFieldValues) {
     if (isCreating) {
       await createUser(fields)
     } else {
@@ -122,94 +205,128 @@ export function UserForm({user, userType}: UserFormProps) {
     }
   }
 
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
+  const handleToggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword)
+  }
+
   return (
-    <>
-      <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
-        <Card as="form" noValidate onSubmit={handleSubmit(onSubmit)} marginBottom={3}>
-          <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
-            <Button onClick={() => router.back()} variant="outline" leftIcon={<TbChevronLeft />}>
-              Back
-            </Button>
-            <ProtectedContent hasAccess={isUserManager}>
-              <ButtonGroup>
-                <ResetButton control={control} reset={reset} variant="outline">
-                  Discard Changes
-                </ResetButton>
-                <SubmitButton control={control} variant="solid" colorScheme="primary">
-                  Save
-                </SubmitButton>
-              </ButtonGroup>
-            </ProtectedContent>
-          </CardHeader>
-          <CardBody display="flex" flexDirection={"column"} gap={4} maxW={{xl: "container.md"}}>
+    <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
+      <Card as="form" noValidate onSubmit={handleSubmit(onSubmit)}>
+        <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
+          <Button onClick={() => router.back()} variant="outline" leftIcon={<TbChevronLeft />}>
+            Back
+          </Button>
+          <ProtectedContent hasAccess={isUserManager}>
+            <ButtonGroup>
+              <ResetButton control={control} reset={reset} variant="outline">
+                Discard Changes
+              </ResetButton>
+              <SubmitButton control={control} variant="solid" colorScheme="primary">
+                Save
+              </SubmitButton>
+            </ButtonGroup>
+          </ProtectedContent>
+        </CardHeader>
+        <CardBody
+          display="flex"
+          flexWrap={{base: "wrap", lg: "nowrap"}}
+          alignItems={"flex-start"}
+          justifyContent="space-between"
+          gap={6}
+        >
+          <VStack flexBasis={"container.lg"} gap={4} maxW={{xl: "container.md"}}>
             <SwitchControl
-              name="Active"
+              name="User.Active"
               label="Active"
               control={control}
               validationSchema={validationSchema}
               isDisabled={!isUserManager}
             />
             <InputControl
-              name="Username"
+              name="User.Username"
               label="Username"
               control={control}
               validationSchema={validationSchema}
               isDisabled={!isUserManager}
             />
-            <InputControl
-              name="FirstName"
-              label="First name"
-              control={control}
-              validationSchema={validationSchema}
-              isDisabled={!isUserManager}
-            />
-            <InputControl
-              name="LastName"
-              label="Last name"
-              control={control}
-              validationSchema={validationSchema}
-              isDisabled={!isUserManager}
-            />
-            <InputControl
-              name="Email"
-              label="Email"
-              control={control}
-              validationSchema={validationSchema}
-              isDisabled={!isUserManager}
-            />
-            <InputControl
-              name="Phone"
-              label="Phone"
-              control={control}
-              validationSchema={validationSchema}
-              isDisabled={!isUserManager}
-            />
-          </CardBody>
-        </Card>
-        {!isCreating && user?.AvailableRoles && (
-          <Card>
-            <CardHeader>
-              <Heading as="h5" size="md">
-                Available Roles
-              </Heading>
-            </CardHeader>
-            <CardBody>
-              <List spacing={3}>
-                {user.AvailableRoles.length ? (
-                  user.AvailableRoles.map((role) => (
-                    <ListItem key={role}>
-                      <ListIcon as={MdCheckCircle} color="green.500" />
-                      {role}
-                    </ListItem>
-                  ))
-                ) : (
-                  <ListItem>No assigned roles</ListItem>
-                )}
-              </List>
-            </CardBody>
-          </Card>
-        )}
-      </Container>
-    </>
+            <SimpleGrid gap={4} w="100%" gridTemplateColumns={{lg: "1fr 1fr"}}>
+              <InputControl
+                name="User.Password"
+                label="Password"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isUserManager}
+                inputProps={{type: showPassword ? "text" : "password"}}
+                rightElement={
+                  <IconButton
+                    onClick={handleTogglePasswordVisibility}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    icon={showPassword ? <Icon as={FaEyeSlash} size="20px" /> : <Icon as={FaEye} size="20px" />}
+                  ></IconButton>
+                }
+              />
+              <InputControl
+                name="User.ConfirmPassword"
+                label="Confirm Password"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isUserManager}
+                inputProps={{type: showConfirmPassword ? "text" : "password"}}
+                rightElement={
+                  <IconButton
+                    onClick={handleToggleConfirmPasswordVisibility}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    icon={showConfirmPassword ? <Icon as={FaEyeSlash} size="20px" /> : <Icon as={FaEye} size="20px" />}
+                  ></IconButton>
+                }
+              />
+              <InputControl
+                name="User.FirstName"
+                label="First name"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isUserManager}
+              />
+              <InputControl
+                name="User.LastName"
+                label="Last name"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isUserManager}
+              />
+              <InputControl
+                name="User.Email"
+                label="Email"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isUserManager}
+              />
+              <InputControl
+                name="User.Phone"
+                label="Phone"
+                control={control}
+                validationSchema={validationSchema}
+                isDisabled={!isUserManager}
+              />
+            </SimpleGrid>
+            <ProtectedContent hasAccess={appPermissions.SecurityProfileManager}>
+              <SecurityProfileAssignmentTabs
+                control={control}
+                assignedRoles={user?.AvailableRoles}
+                commerceRole={userType}
+                assignmentLevel="user"
+                parentId={parentId}
+                assignmentLevelId={user?.ID || "THIS_WILL_BE_REPLACED_BY_THE_CREATED_USER_ID"}
+                showAssignedTab={!isCreating}
+              />
+            </ProtectedContent>
+          </VStack>
+        </CardBody>
+      </Card>
+    </Container>
   )
 }

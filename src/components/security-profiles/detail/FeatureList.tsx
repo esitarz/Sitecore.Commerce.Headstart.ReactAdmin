@@ -1,3 +1,4 @@
+import {InfoOutlineIcon} from "@chakra-ui/icons"
 import {
   Box,
   Heading,
@@ -11,7 +12,8 @@ import {
   AccordionButton,
   AccordionIcon,
   AccordionPanel,
-  FormLabel
+  FormLabel,
+  Tooltip
 } from "@chakra-ui/react"
 import {PermissionConfig, appPermissions} from "config/app-permissions.config"
 import {isAllowedAccess} from "hooks/useHasAccess"
@@ -102,7 +104,12 @@ export function FeatureList({
                               onChange={() => handleChange(feature.Name)}
                               isDisabled={isDisabled}
                             />
-                            <Text>{feature.Name}</Text>
+                            <HStack>
+                              <Text>{feature.Name}</Text>
+                              <Tooltip label={feature.Description} placement="right">
+                                <InfoOutlineIcon color="gray.500" />
+                              </Tooltip>
+                            </HStack>
                           </HStack>
                         ))}
                       </VStack>
