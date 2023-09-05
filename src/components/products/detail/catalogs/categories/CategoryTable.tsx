@@ -55,7 +55,7 @@ export function CategoryTable({control, fieldArray}: CategoryTableProps) {
             <TableContainer
               whiteSpace="normal"
               border=".5px solid"
-              borderColor="st.borderColor"
+              borderColor="chakra-border-color"
               shadow="lg"
               overflowX="hidden"
               w="100%"

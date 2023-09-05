@@ -74,7 +74,10 @@ export function FeatureList({
 
   return (
     <VStack alignItems="flex-start" width="full">
-      <FormLabel>Admin App Features</FormLabel>
+      <Heading as="h3" size="md" alignSelf="flex-start" my={3}>
+        Admin App Features
+      </Heading>
+      <FormLabel></FormLabel>
       <Accordion width="full" allowToggle={true}>
         {Object.entries(groupedFeatures).map(([groupName, features]) => {
           const featuresEnabledCount = getFeaturesEnabledCount(features)

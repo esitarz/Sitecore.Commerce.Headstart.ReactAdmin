@@ -94,7 +94,7 @@ const SidebarMenu = ({isInDrawer, onLinkClick}: SidebarMenuProps) => {
           backgroundColor: btnActiveBgColor,
           color: btnActiveColor,
           boxShadow: "sm",
-          borderColor: "st.borderColor"
+          borderColor: "chakra-border-color"
         }}
         _hover={{textDecoration: "none", backgroundColor: btnActiveBgColor, boxShadow: "md"}}
         border={".5px solid transparent"}
@@ -120,7 +120,7 @@ const SidebarMenu = ({isInDrawer, onLinkClick}: SidebarMenuProps) => {
       w={isInDrawer ? "250px" : ["75px", "75px", "75px", "250px"]}
       background={isInDrawer ? "transparent" : drawerBackground}
       borderRight={isInDrawer ? "none" : ".5px solid"}
-      borderColor="st.borderColor"
+      borderColor="chakra-border-color"
       minH={`calc(100vh - ${schraTheme?.sizes?.headerHeight} * 2.5)`} // this prevents uneeded scrollbars: full viewport height - header and footer heights...plus a .5 saftey net
       h="100%"
     >

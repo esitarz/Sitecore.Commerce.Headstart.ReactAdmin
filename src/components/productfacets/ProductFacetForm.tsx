@@ -92,11 +92,7 @@ export function ProductFacetForm({productFacet}: ProductFacetFormProps) {
       <Card as="form" noValidate onSubmit={handleSubmit(onSubmit)}>
         <ProtectedContent hasAccess={appPermissions.ProductFacetManager}>
           <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
-            <Button
-              onClick={() => router.push("/settings/productfacets")}
-              variant="outline"
-              leftIcon={<TbChevronLeft />}
-            >
+            <Button onClick={() => router.push("/settings/productfacets")} variant="ghost" leftIcon={<TbChevronLeft />}>
               Back
             </Button>
             <ButtonGroup>

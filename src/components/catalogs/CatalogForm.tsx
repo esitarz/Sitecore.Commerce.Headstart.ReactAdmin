@@ -80,7 +80,7 @@ export function CatalogForm({catalog}: CatalogFormProps) {
           <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
             <Button
               onClick={() => router.push(`/buyers/${router.query.buyerid}/catalogs`)}
-              variant="outline"
+              variant="ghost"
               leftIcon={<TbChevronLeft />}
             >
               Back

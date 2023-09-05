@@ -89,7 +89,7 @@ export function BuyerForm({buyer}: BuyerFormProps) {
     <Container maxW="100%" bgColor="st.mainBackgroundColor" flexGrow={1} p={[4, 6, 8]}>
       <Card as="form" noValidate onSubmit={handleSubmit(onSubmit)}>
         <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
-          <Button onClick={() => router.push("/buyers")} variant="outline" leftIcon={<TbChevronLeft />}>
+          <Button onClick={() => router.push("/buyers")} variant="ghost" leftIcon={<TbChevronLeft />}>
             Back
           </Button>
           <ProtectedContent hasAccess={appPermissions.BuyerManager}>

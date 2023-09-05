@@ -1,5 +1,5 @@
 import {Link} from "@/components/navigation/Link"
-import {HStack, VStack, Text, Checkbox, Card, CardBody} from "@chakra-ui/react"
+import {HStack, VStack, Text, Checkbox, Card, CardBody, Heading} from "@chakra-ui/react"
 import {appPermissions} from "config/app-permissions.config"
 import {isAllowedAccess} from "hooks/useHasAccess"
 import {useSecurityProfileAssignmentRows} from "hooks/useSecurityProfileAssignmentRows"
@@ -73,6 +73,9 @@ export function SecurityProfileAssignmentList({
   }
   return (
     <VStack>
+      <Heading as="h3" size="md" alignSelf="flex-start" my={3}>
+        Security Profile Roles
+      </Heading>
       {rows.map(({securityProfile, isInherited, isAssigned, inheritedAssignedParties}) => {
         const roles = [...securityProfile.Roles, ...securityProfile.CustomRoles]
         const enabledFeaturesCount = features.filter((f) => isAllowedAccess(roles, f)).length
@@ -163,28 +166,44 @@ export function SecurityProfileAssignmentList({
 
         return (
           <Card key={securityProfile.ID + isInherited} width="full" marginBottom={3}>
-            <CardBody>
-              <HStack width="full" justifyContent="space-between">
-                <HStack>
-                  <Checkbox
-                    isChecked={isAssigned}
-                    isDisabled={isInherited}
-                    onChange={(e) => handleAssignmentChange(e.target.checked, securityProfile.ID)}
-                  />
-                  <VStack marginLeft={3}>
-                    <Link href={`/settings/securityprofiles/${securityProfile.ID}`} title={securityProfile.Name}>
-                      {securityProfile.Name}
-                    </Link>
-                    {/* <Text>{summary.join(", ")}</Text> */}
-                  </VStack>
-                </HStack>
-                {isInherited && (
-                  <HStack>
-                    <Text>Inherited from</Text>
-                    <HStack divider={<Text marginRight={1}>,</Text>}>{inheritedFromParts}</HStack>
+            <CardBody as={HStack} alignItems="center" gap={6}>
+              <Checkbox
+                isChecked={isAssigned}
+                isDisabled={isInherited}
+                onChange={(e) => handleAssignmentChange(e.target.checked, securityProfile.ID)}
+              />
+              <VStack alignItems="flex-start" justifyContent="center" lineHeight="1">
+                <Link href={`/settings/securityprofiles/${securityProfile.ID}`} title={securityProfile.Name}>
+                  {securityProfile.Name}
+                </Link>
+                <Text color="chakra-subtle-text" fontSize="sm">
+                  {summary.join(", ")}
+                </Text>
+              </VStack>
+              {isInherited && (
+                <VStack
+                  fontSize="xs"
+                  alignItems="flex-start"
+                  justifyContent="flex-start"
+                  ml="auto"
+                  lineHeight="1"
+                  maxW="200"
+                >
+                  <Text color="chakra-placeholder-color">Inherited from</Text>
+                  <HStack
+                    gap={2}
+                    flexWrap="wrap"
+                    alignItems="flex-end"
+                    divider={
+                      <Text color="chakra-placeholder-color" mr={1}>
+                        ,
+                      </Text>
+                    }
+                  >
+                    {inheritedFromParts}
                   </HStack>
-                )}
-              </HStack>
+                </VStack>
+              )}
             </CardBody>
           </Card>
         )

@@ -1,9 +1,11 @@
-import {FormControl, FormLabel, Tab, TabList, TabPanel, TabPanels, Tabs} from "@chakra-ui/react"
+import {FormControl, FormLabel, Heading, Tab, TabList, TabPanel, TabPanels, Tabs} from "@chakra-ui/react"
 import {ApiRole} from "ordercloud-javascript-sdk"
 import {SecurityProfileSummary} from "./SecurityProfileSummary"
 import {orderCloudRoles} from "constants/ordercloud-roles"
 import {SecurityProfileAssignmentLevel} from "types/ordercloud/SecurityProfileAssignmentLevel"
 import {SecurityProfileAssignmentList} from "./SecurityProfileAssignmentList"
+import {OverlayScrollbars} from "overlayscrollbars"
+import {OverlayScrollbarsComponent} from "overlayscrollbars-react"
 
 interface SecurityProfileAssignmentsProps {
   assignedRoles: string[] // assigned roles including both api roles and custom roles
@@ -28,10 +30,7 @@ export function SecurityProfileAssignmentTabs({
 
   return (
     <>
-      <FormControl>
-        <FormLabel>Security Profile Roles</FormLabel>
-      </FormControl>
-      <Tabs width="full" isLazy={true}>
+      <Tabs variant="enclosed" width="full">
         <TabList>
           {showAssignedTab && <Tab>Assigned</Tab>}
           <Tab>Assignments</Tab>
@@ -42,7 +41,18 @@ export function SecurityProfileAssignmentTabs({
               <SecurityProfileSummary roles={apiRoles} customRoles={customRoles} />
             </TabPanel>
           )}
-          <TabPanel>
+          <TabPanel
+            as={OverlayScrollbarsComponent}
+            defer
+            options={{
+              overflow: {
+                x: "hidden",
+                y: "scroll"
+              },
+              scrollbars: {autoHide: "scroll"}
+            }}
+            h={"50vh"}
+          >
             <SecurityProfileAssignmentList
               assignmentLevel={assignmentLevel}
               commerceRole={commerceRole}

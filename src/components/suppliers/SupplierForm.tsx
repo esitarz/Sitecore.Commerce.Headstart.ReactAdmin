@@ -78,7 +78,7 @@ export function SupplierForm({supplier}: SupplierFormProps) {
       <Card as="form" noValidate onSubmit={handleSubmit(onSubmit)}>
         <ProtectedContent hasAccess={appPermissions.SupplierManager}>
           <CardHeader display="flex" flexWrap="wrap" justifyContent="space-between">
-            <Button onClick={() => router.push("/suppliers")} variant="outline" leftIcon={<TbChevronLeft />}>
+            <Button onClick={() => router.push("/suppliers")} variant="ghost" leftIcon={<TbChevronLeft />}>
               Back
             </Button>
             <ButtonGroup>
