@@ -10,7 +10,7 @@ const styles = {
       fill: "primary.900"
     },
     ".my-commerce-icon_dark": {
-      fill: "st.logoBaseColor"
+      fill: "chakra-body-text"
     },
     ".visa-logo-background": {
       fill: "st.visaBackground"
