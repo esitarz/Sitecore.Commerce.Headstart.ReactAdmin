@@ -6,10 +6,13 @@ import Footer from "./Footer"
 import Header from "./Header"
 import {useAuth} from "hooks/useAuth"
 import SideBarMenu from "../navigation/SideBarMenu"
+import {useRouter} from "@/hooks/useRouter"
 
 const Layout = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const auth = useAuth()
+  const router = useRouter()
+
   useEffect(() => {
     setIsAuthenticated(auth.isAuthenticated)
   }, [auth.isAuthenticated])
@@ -23,16 +26,20 @@ const Layout = (props) => {
   return (
     <>
       <Header />
-      <Grid as="main" gridTemplateColumns={["auto", "75px auto", "75px auto", "250px auto"]} flexGrow="1">
-        <Hide below="sm">
-          <SideBarMenu />
-        </Hide>
-        <Flex flexFlow={"column nowrap"} overflowX="hidden">
-          <ContentHeader />
-          {props.children}
-          <ContentFooter />
-        </Flex>
-      </Grid>
+      {router.asPath !== "/parking" && router.asPath !== "/cart" ? (
+        <Grid as="main" gridTemplateColumns={["auto", "75px auto", "75px auto", "250px auto"]} flexGrow="1">
+          <Hide below="sm">
+            <SideBarMenu />
+          </Hide>
+          <Flex flexFlow={"column nowrap"} overflowX="hidden">
+            <ContentHeader />
+            {props.children}
+            <ContentFooter />
+          </Flex>
+        </Grid>
+      ) : (
+        <Flex flexGrow="1">{props.children}</Flex>
+      )}
       <Footer />
     </>
   )

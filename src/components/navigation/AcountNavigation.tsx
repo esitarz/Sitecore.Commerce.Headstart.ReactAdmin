@@ -54,7 +54,7 @@ const MobileNavigation = () => {
   }
   return (
     <HStack alignItems="center" gap={3}>
-      <Menu>
+      {/* <Menu>
         <MenuButton pos={"relative"} mr={3}>
           <Icon as={TbInbox} strokeWidth="1.5" fontSize="2xl" />
           <Badge
@@ -106,7 +106,7 @@ const MobileNavigation = () => {
             />
           </MenuItem>
         </MenuList>
-      </Menu>
+      </Menu> */}
 
       <Menu>
         <MenuButton>

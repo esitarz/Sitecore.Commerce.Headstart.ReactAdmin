@@ -4,12 +4,19 @@ import components from "./components/index"
 import styles from "./styles"
 import layerStyles from "./layer-styles"
 import semanticTokens from "./semantic-tokens"
+import "@fontsource/work-sans"
+
+const fontStack = `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`
 
 const schraTheme = extendTheme({
   config: {
-    initialColorMode: "system",
-    useSystemColorMode: true,
+    initialColorMode: "light",
+    useSystemColorMode: false,
     cssVarPrefix: "schra"
+  },
+  fonts: {
+    heading: `'Work Sans', ${fontStack}`,
+    body: `'Work Sans', ${fontStack}`
   },
   ...foundations,
   components,
